@@ -1,0 +1,81 @@
+services:
+  broker-service:
+    build:
+      context: ../polygon_swiftlink_broker_api
+      dockerfile: ../polygon_swiftlink_broker_api/Dockerfile
+    restart: always
+    container_name: polygon_swiftlink-broker-service
+    ports:
+      - "8080:8080"
+    deploy:
+      mode: replicated
+      replicas: 1
+    env_file:
+      - .env
+
+  authentication-service:
+    build:
+      context: ../polygon_swiftlink_auth_api
+      dockerfile: ../polygon_swiftlink_auth_api/Dockerfile
+    restart: always
+    container_name: polygon_swiftlink-auth-service
+    deploy:
+      mode: replicated
+      replicas: 1
+    env_file:
+      - .env
+    depends_on:
+      - db_init
+
+  service-api:
+    build:
+      context: ../polygon_swiftlink_services_api
+      dockerfile: ../polygon_swiftlink_services_api/Dockerfile
+    restart: always
+    container_name: polygon_swiftlink-service_api
+    deploy:
+      mode: replicated
+      replicas: 1
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    env_file:
+      - docker.env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -q -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  db_init:
+    image: postgres:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+    entrypoint:
+      [
+        "sh",
+        "-c",
+        "until pg_isready -h postgres -U ${POSTGRES_USER}; do echo waiting for postgres; sleep 2; done; PGPASSWORD=${POSTGRES_PASSWORD} createdb -h postgres -U ${POSTGRES_USER} --owner=${POSTGRES_USER} ${POSTGRES_DB}",
+      ]
