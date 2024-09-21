@@ -69,15 +69,15 @@ build_push: build_push_authentication_service   build_push_broker_service build_
 
 # migrate_up_local: apply all migrations locally
 migrate_up_local: ## Apply all migrations locally
-	migrate -path ../database/migrations -database "postgresql://admin:password@localhost:5432/polygon_swiftlink_db?sslmode=disable" -verbose up
+	migrate -path ../polygon_swiftlink_db_migrations/migrations -database "postgresql://admin:password@localhost:5432/polygon_swiftlink_db?sslmode=disable" -verbose up
 
 # migrate_down_local: rollback all migrations locally
 migrate_down_local: ## Rollback all migrations locally
-	migrate -path ../database/migrations -database "postgresql://admin:password@localhost:5432/polygon_swiftlink_db?sslmode=disable" -verbose down
+	migrate -path ../polygon_swiftlink_db_migrations/migrations -database "postgresql://admin:password@localhost:5432/polygon_swiftlink_db?sslmode=disable" -verbose down
 
 # migrate_down_last_local: rollback the last migration locally
 migrate_down_last_local: ## Rollback the last migration locally
-	migrate -path ../database/migrations -database "postgresql://admin:password@localhost:5432/polygon_swiftlink_db?sslmode=disable" -verbose down 1
+	migrate -path ../polygon_swiftlink_db_migrations/migrations -database "postgresql://admin:password@localhost:5432/polygon_swiftlink_db?sslmode=disable" -verbose down 1
 
 # dropdb: drop the database
 dropdb: ## Drop the database
@@ -88,7 +88,7 @@ createdb: ## Create the database
 	docker exec -it postgres createdb --username=admin --owner=admin polygon_swiftlink_db
 
 # migrate: create a new migration file e.g make migrate schema=<migration_name>
-MIGRATE_CMD = migrate create -ext sql -dir ../database/migrations -seq
+MIGRATE_CMD = migrate create -ext sql -dir ../polygon_swiftlink_db_migrations/migrations -seq
 migrate: ## Create a new migration file e.g make migrate schema=<migration_name>
 	@$(MIGRATE_CMD) $(schema)
 
@@ -131,10 +131,10 @@ commit_mobile: ## commit_mobile: pushes polygon_swiftlink_mobile to github
 # commit_db: push project database sql to github
 commit_db: ## commit_db: push project database sql to github
 	@if [ "$(message)" = "" ]; then echo "Commit message required"; exit 1; fi
-	@cd ../database && git status
-	@cd ../database && git add .
-	@cd ../database && git commit -m "$(message)"
-	@cd ../database && git push origin $(BRANCH)
+	@cd ../polygon_swiftlink_db_migrations && git status
+	@cd ../polygon_swiftlink_db_migrations && git add .
+	@cd ../polygon_swiftlink_db_migrations && git commit -m "$(message)"
+	@cd ../polygon_swiftlink_db_migrations && git push origin $(BRANCH)
 
 # commit_setup: push project setup to github
 commit_setup: ## push project setup to github
