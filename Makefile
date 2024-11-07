@@ -9,6 +9,8 @@ AUTHENTICATION_IMAGE := biostech/polygon-swiftlink-authentication-service:1.0.0
 BROKER_IMAGE := biostech/polygon-swiftlink-broker-service:1.0.0
 SERVICE_IMAGE := biostech/polygon-swiftlink-api-service:1.0.0
 
+SWITFLINK_FRONTEND_IMAGE := biostech/swiftlink-frontend-service:1.0.0
+
 # up: starts all containers in the background without forcing build
 up: ## Start all containers in the background without forcing build
 	@echo "Starting Docker images..."
@@ -50,9 +52,14 @@ build_auth_service: ## Build the authentication service binary
 	@echo "Done!"
 
 
+#build_push_swift_mobile
+build_push_swift_frontend: ## Build the front-end page
+	cd ../swift_mobile/ && docker build --no-cache -f Dockerfile -t $(SWITFLINK_FRONTEND_IMAGE) . && docker push $(SWITFLINK_FRONTEND_IMAGE)
+
+
 # push_authentication_service: push authentication service to docker hub
 build_push_authentication_service: ## Push the authentication service to Docker Hub
-	cd ../build_auth_service/ && docker build --no-cache -f Dockerfile -t $(AUTHENTICATION_IMAGE) . && docker push $(AUTHENTICATION_IMAGE)
+	cd ../polygon_swiftlink_auth_api/ && docker build --no-cache -f Dockerfile -t $(AUTHENTICATION_IMAGE) . && docker push $(AUTHENTICATION_IMAGE)
 
 # push_broker_service: push broker service to docker hub
 build_push_broker_service: ## Push the broker service to Docker Hub

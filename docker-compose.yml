@@ -79,3 +79,20 @@ services:
         "-c",
         "until pg_isready -h postgres -U ${POSTGRES_USER}; do echo waiting for postgres; sleep 2; done; PGPASSWORD=${POSTGRES_PASSWORD} createdb -h postgres -U ${POSTGRES_USER} --owner=${POSTGRES_USER} ${POSTGRES_DB}",
       ]
+
+  front-end:
+    build:
+      context: ../swift_mobile
+      dockerfile: ../swift_mobile/Dockerfile
+    restart: always
+    container_name: swift_mobile_frontend
+    ports:
+      - "8081:8081"
+    volumes:
+      - ../swift_mobile:/app
+      - /app/node_modules
+    environment:
+      EXPO_WEB_PORT: "${EXPO_WEB_PORT}"
+      WEB_URL: "${WEB_URL}"
+    env_file:
+      - ../swift_mobile/.env
